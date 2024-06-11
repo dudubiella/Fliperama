@@ -6,31 +6,54 @@ class Cano:
     # Define a imagem deste objeto
     IMAGEM = pygame.transform.scale2x(pygame.image.load(os.path.join(os.path.dirname(__file__) + '\\imgs','pipe.png')))
 
-    # Defina a distância entre os canos
-    DISTANCIA = 200
-    # Define a velocidade dos canos
-    VELOCIDADE = 5
-
-    def __init__(self, x):
+    def __init__(self, x, dificuldade = 0):
+        self.tipo = random.randrange(0, 2)
         self.x = x
+        self.dificuldade = dificuldade
         self.altura = 0
         self.pos_topo = 0
         self.pos_base = 0
         self.CANO_TOPO = pygame.transform.flip(self.IMAGEM, False, True)
         self.CANO_BASE = self.IMAGEM
         self.passou = False
+        self.velocidade = 5
+        self.distancia = 200
+        if self.dificuldade == 2:
+            self.distancia = 190
         self.def_altura()
 
     # Define a altura dos novos canos aleatoriamente
     def def_altura(self):
-        self.altura = random.randrange(50, 500)
+        self.altura = random.randrange(100, 301)
         self.pos_topo = self.altura - self.CANO_TOPO.get_height()
-        self.pos_base = self.altura + self.DISTANCIA
+        self.pos_base = self.altura + self.distancia
 
     # Move os Canos
     def mover(self):
-        self.x -= self.VELOCIDADE
-    
+        match self.dificuldade:
+            case 1:
+                self.velocidade = 10
+                vel_y = 2
+            case 2:
+                self.velocidade = 12
+                vel_y = 3
+
+        self.x -= self.velocidade
+        if self.dificuldade != 0:
+            self.move_y(vel_y)
+
+    def move_y(self, vel):
+        match self.tipo:
+            case 0:
+                self.pos_topo += vel
+                self.pos_base += vel
+            case 1:
+                self.pos_topo -= vel
+                self.pos_base -= vel
+        if self.pos_topo < -500 and self.tipo != 0:
+            self.tipo = 0
+        elif self.pos_base > 500 and self.tipo != 1:
+            self.tipo = 1
     # Desenha os Canos
     def desenhar(self, tela):
         tela.blit(self.CANO_TOPO, (self.x, self.pos_topo))
