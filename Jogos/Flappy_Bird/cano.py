@@ -18,7 +18,9 @@ class Cano:
         self.passou = False
         self.velocidade = 5
         self.distancia = 200
-        if self.dificuldade == 2:
+        if self.dificuldade == 1:
+            self.dificuldade = random.randrange(0,2)
+        elif self.dificuldade == 2:
             self.distancia = 190
         self.def_altura()
 
@@ -30,7 +32,10 @@ class Cano:
 
     # Move os Canos
     def mover(self):
+        vel_y = 0
         match self.dificuldade:
+            case 0:
+                self.velocidade = 10
             case 1:
                 self.velocidade = 10
                 vel_y = 2
@@ -39,7 +44,8 @@ class Cano:
                 vel_y = 3
 
         self.x -= self.velocidade
-        if self.dificuldade != 0:
+
+        if vel_y != 0:
             self.move_y(vel_y)
 
     def move_y(self, vel):

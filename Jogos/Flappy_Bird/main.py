@@ -2,6 +2,7 @@ import pygame
 from passaro import *
 from cano import *
 from chao import *
+from botao import *
 
 # Determina o tamanho da tela
 TELA_L, TELA_A = 500, 800
@@ -35,16 +36,74 @@ def desenha_tela(tela, passaros, canos, chao, pontos):
     # Atualiza a Tela apresentada
     pygame.display.update()
 
+def escolha(tela):
+    opcao = 0
+    
+    facil = Button(imagem = None, pos = (TELA_L / 2, 300),
+                           texto = "FACIL", fonte = pygame.font.Font(None, 40), cor = "Black", cor_selecionada = "Green", opcao = 0)
+    medio = Button(imagem = None, pos = (TELA_L / 2, 400),
+                           texto = "MEDIO", fonte = pygame.font.Font(None, 40), cor = "Black", cor_selecionada = "Green", opcao = 1)
+    dificil = Button(imagem = None, pos = (TELA_L / 2, 500),
+                           texto = "DIFICIL", fonte = pygame.font.Font(None, 40), cor = "Black", cor_selecionada = "Green", opcao = 2)
+    sair_escolha = Button(imagem = None, pos = (TELA_L / 2, 600),
+                           texto = "SAIR", fonte = pygame.font.Font(None, 40), cor = "Black", cor_selecionada = "Green", opcao = 3)
+    
+
+    while True:
+        tela.fill("white")
+
+        texto_dificuldade = pygame.font.Font(None, 50).render("ESCOLHA A DIFICULDADE:", True, "#6699CC")
+        dificuldade_certo = texto_dificuldade.get_rect(center = (TELA_L / 2, 100))
+        
+        tela.blit(texto_dificuldade, dificuldade_certo)
+
+        facil.muda_cor(opcao)
+        facil.atualiza(tela)
+        
+        medio.muda_cor(opcao)
+        medio.atualiza(tela)
+        
+        dificil.muda_cor(opcao)
+        dificil.atualiza(tela)
+
+        sair_escolha.muda_cor(opcao)
+        sair_escolha.atualiza(tela)
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_UP: 
+                    opcao -= 1
+                    if opcao < 0:
+                        opcao = 3
+                elif evento.key == pygame.K_DOWN:
+                    opcao += 1
+                    if opcao > 3:
+                        opcao = 0
+
+                elif evento.key == pygame.K_SPACE:
+                    return opcao
+
+        pygame.display.update()
+
 # Roda o Jogo
 def main():
+    # Cria a Tela
+    tela = pygame.display.set_mode((TELA_L, TELA_A))
+
+    dificuldade = escolha(tela)
+
+    if dificuldade == 3:
+        return -1
+
     # Cria os Passaros
     passaros = [Passaro(230, 350)]
     # Cria o Chão
     chao = Chao(TELA_A - 70)
     # Cria os Canos
-    canos = [Cano(TELA_L + 200)]
-    # Cria a Tela
-    tela = pygame.display.set_mode((TELA_L, TELA_A))
+    canos = [Cano(TELA_L + 200, dificuldade)]
     # Define a pontuação inicial
     pontos = 0
     # Define o relógio interno do jogo
@@ -61,7 +120,6 @@ def main():
             # Verifica se o usuário saiu do jogo
             if evento.type == pygame.QUIT:
                 rodando = False
-                pygame.quit()
                 return pontos
 
             # Verifica se o usuário apertou alguma tecla
@@ -100,7 +158,7 @@ def main():
         # Adiciona um novo Cano
         if adicionar_cano:
             pontos += 1
-            canos.append(Cano(TELA_L + 100))
+            canos.append(Cano(TELA_L + 100, dificuldade))
 
         # Remove os Canos
         for cano in remover_canos:
@@ -113,7 +171,7 @@ def main():
 
         # Quando não tem mais passaros vivos apresenta sua pontuação
         if passaros == []:
-            print(f"Você fez {pontos} pontos")
+            return pontos
         
         # Apresenta a Tela com todas as informações
         desenha_tela(tela, passaros, canos, chao, pontos)

@@ -30,8 +30,15 @@ def le_creditos(local):
     return content.decode('utf-8')
     
 def exec_jogo(local):
-    subprocess.run(["python", local + "//main.py"])
-    print(local)
+    result = subprocess.run(["python", os.path.join(local, "main.py")], capture_output=True, text=True)
+    output = result.stdout.strip().split('\n')
+    print(f"Saída do jogo: {output}")  # Print de depuração para verificar a saída completa
+    for line in output:
+        if "Você fez" in line:
+            pontos = line.split()[-2]
+            if pontos.isdigit():
+                return pontos
+    return "0"
 
 def play():
     pygame.display.set_caption("Games")
@@ -80,10 +87,11 @@ def play():
                     opcao = muda_opcao(opcao, 1, 2)
 
                 elif evento.key == pygame.K_SPACE:
-                    for botao in botoes:
-                        if botao.verifica_entrada(opcao):
-                            exec_jogo(arquivos[botao.opcao])
-                    if play_sair.verifica_entrada(opcao):
+                    if opcao < len(botoes):
+                        print(f"Executando jogo: {arquivos[opcao]}")
+                        pontos = exec_jogo(arquivos[opcao])
+                        print(f"Você fez {pontos} pontos")
+                    elif opcao == len(botoes):
                         main_menu()
         
         pygame.display.update()
