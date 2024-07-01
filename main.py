@@ -1,6 +1,8 @@
-import pygame, sys, subprocess
+import pygame, sys, subprocess, os, tempfile
 from botao import Button
-import os
+#pip install pygame
+#pip install subprocess
+#pip intall tempfile
 
 pygame.init()
 
@@ -9,7 +11,7 @@ TELA_L, TELA_A = 1280, 720
 TELA = pygame.display.set_mode((TELA_L, TELA_A))
 pygame.display.set_caption("Menu")
 
-BG = pygame.image.load("imgs/BackGround.png")
+BG = pygame.image.load("imgs/Background.png")
 
 def add_fonte(tamanho):
     return pygame.font.Font("imgs/font.ttf", tamanho)
@@ -30,14 +32,29 @@ def le_creditos(local):
     return content.decode('utf-8')
     
 def exec_jogo(local):
-    result = subprocess.run(["python", os.path.join(local, "main.py")], capture_output=True, text=True)
-    output = result.stdout.strip().split('\n')
-    print(f"Saída do jogo: {output}")  # Print de depuração para verificar a saída completa
-    for line in output:
-        if "Você fez" in line:
-            pontos = line.split()[-2]
-            if pontos.isdigit():
+    with tempfile.NamedTemporaryFile(delete=False, mode='w', dir='.') as temp_file:
+        temp_file_path = temp_file.name
+
+    try:
+        process = subprocess.Popen(["python", os.path.join(local, "main.py"), temp_file_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # Enquanto o processo está em execução, vamos imprimir as saídas stdout e stderr
+        for line in process.stdout:
+            print(line.strip())
+        for line in process.stderr:
+            print(line.strip())
+        
+        process.wait()
+        
+        with open(temp_file_path, 'r') as file:
+            pontos = file.read().strip()
+            if pontos.isdigit() or pontos == "-1":
                 return pontos
+    except Exception as e:
+        print(f"Erro ao executar o jogo: {e}")
+    finally:
+        os.remove(temp_file_path)
+
     return "0"
 
 def play():
@@ -48,14 +65,14 @@ def play():
     botoes = []
     arquivos = []
     
-    local_pasta = os.getcwd() + "\\Jogos"
+    local_pasta = os.getcwd() + "/Jogos"
     lista_jogos = os.listdir(local_pasta)
 
     for i, nome_arq in enumerate(lista_jogos):
         nome = os.path.splitext(nome_arq)[0]
         botoes.append(Button(imagem = None, pos = (240, 250 + 50 * i),
                              texto = nome, fonte = add_fonte(40), cor = "Black", cor_selecionada = "Green", opcao = i))
-        arquivos.append(local_pasta + "\\" + nome_arq)
+        arquivos.append(local_pasta + "/" + nome_arq)
 
     play_sair = Button(imagem = pygame.image.load("imgs/Quit Rect.png"), pos = (1050, 600),
                            texto = "SAIR", fonte = add_fonte(75), cor = "Black", cor_selecionada = "Green", opcao = i + 1)
@@ -88,9 +105,9 @@ def play():
 
                 elif evento.key == pygame.K_SPACE:
                     if opcao < len(botoes):
-                        print(f"Executando jogo: {arquivos[opcao]}")
                         pontos = exec_jogo(arquivos[opcao])
-                        print(f"Você fez {pontos} pontos")
+                        if pontos == -1:
+                            print(f"Você fez {pontos} pontos")
                     elif opcao == len(botoes):
                         main_menu()
         
@@ -105,11 +122,11 @@ def creditos():
     botoes = []
     conteudos = []
     
-    local_pasta = os.getcwd() + "\\creditos"
+    local_pasta = os.getcwd() + "/creditos"
     lista_colaboradores = os.listdir(local_pasta)
 
     for i, nome_arq in enumerate(lista_colaboradores):
-        conteudos.append(le_creditos(local_pasta + "\\" + nome_arq))
+        conteudos.append(le_creditos(local_pasta + "/" + nome_arq))
         nome = os.path.splitext(nome_arq)[0]
         botoes.append(Button(imagem = None, pos = (640, 250 + 130 * i),
                              texto = nome, fonte = add_fonte(70), cor = "Black", cor_selecionada = "Green", opcao = i))
@@ -161,11 +178,11 @@ def main_menu():
     opcao = 0
     
     but_play = Button(imagem = pygame.image.load("imgs/Play Rect.png"), pos = (640,250),
-                        texto = "PLAY", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "white", opcao = 0)
+                        texto = "PLAY", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "gray", opcao = 0)
     but_creditos = Button(imagem = pygame.image.load("imgs/Options Rect.png"), pos = (640,400),
-                        texto = "CREDITS", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "white", opcao = 1)
+                        texto = "CREDITS", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "gray", opcao = 1)
     but_sair = Button(imagem = pygame.image.load("imgs/Quit Rect.png"), pos = (640,550),
-                        texto = "SAIR", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "white", opcao = 2)
+                        texto = "SAIR", fonte = add_fonte(75), cor = "#d7fcd4", cor_selecionada = "gray", opcao = 2)
     
     while True:
         TELA.blit(BG, (0, 0))
