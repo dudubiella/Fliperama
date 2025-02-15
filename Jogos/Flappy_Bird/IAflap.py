@@ -54,7 +54,7 @@ def main(genomas = None, config = None):
         passaros = [Passaro(230, 350)]
 
     chao = Chao(TELA_A - 70)
-    canos = [Cano(TELA_L + 200, random.randrange(0, int(input("Defina a dificuldade:\n 0 - Facil\n 1 - Medio\n 2 - dificil\n\n")) + 1))]
+    canos = [Cano(TELA_L + 200, 2)]
     tela = pygame.display.set_mode((TELA_L, TELA_A))
     pontos = 0
     relogio = pygame.time.Clock()
